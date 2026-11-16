@@ -78,7 +78,19 @@ unsetenv(const char *name)
     return result;
 }
 
-extern int win_CRT_fd_of_filedescr(value handle);
+#include <io.h>
+#include <caml/unixsupport.h>
+
+/* Use the Unix support header's compatibility names, rather than linking
+   directly to private pre-5.0 runtime symbols. */
+CAMLprim value pyml_win_handle_fd(value fd)
+{
+    CAMLparam1(fd);
+    HANDLE handle = (HANDLE) _get_osfhandle(Int_val(fd));
+    if (handle == INVALID_HANDLE_VALUE)
+        caml_invalid_argument("Pyml_arch.fd_of_int: invalid file descriptor");
+    CAMLreturn(win_alloc_handle(handle));
+}
 
 static FILE *
 file_of_file_descr(value file_descr, const char *mode)
